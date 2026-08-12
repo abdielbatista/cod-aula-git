@@ -1,2 +1,2 @@
 SELECT nome 
-FROM cliente
+FROM alunos
