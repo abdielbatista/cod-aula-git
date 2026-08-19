@@ -10,6 +10,8 @@ Na raiz do seu projeto (por exemplo, na pasta projeto-integrador), crie as segui
 │
 ├── /frontend
 │   ├── index.html
+│   ├── login.html
+│   ├── cadastro.css
 │   ├── style.css
 │   └── script.js
 │
