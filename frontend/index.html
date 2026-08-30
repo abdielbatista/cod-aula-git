@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+    
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,9 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
 </head>
 
 <body class="bg-gray-100 min-h-screen p-6">
@@ -16,8 +20,18 @@
     <div>
         
         <header class="mb-6 flex justify-between items-center bg-white p-4 rounded-lg shadow">
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard IoT (Dados do MySQL)</h1>
+
+            <div class="flex items-center gap-6">
+                <i class="fa-solid fa-chart-line text-green-800 text-4xl"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Dashboard IoT (Dados do MySQL)</h1>
+            </div>
+
+            
+
+           
             <span class="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm font-semibold">Conectado ao Banco</span>
+        
+        
         </header>
 
         <div class="grid grid-cols-1 mb:grid-cols-2 gap-6 mb-6">   
@@ -34,16 +48,7 @@
             
 
         </div>
-        
-<div class="flex items-center gap-2 p-4">
-  <!-- Ícone SVG estilizado com Tailwind -->
-  <svg xmlns="http://w3.org" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
-    class="size-6 text-[oklch(45.3%_0.124_130.933)]">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-  </svg>
-  
-  <span>Texto ao lado do ícone</span>
-</div>
+
 
         <div class="bg-white p-6 rounded-lg shadow">
 
