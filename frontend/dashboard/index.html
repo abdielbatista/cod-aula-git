@@ -43,7 +43,12 @@
                 <i class="fa-solid fa-chart-line text-gray-800 text-xl"></i>
                 <h1 class="text-2xl font-bold text-gray-800">Dashboard IoT (Dados do MySQL)</h1>
             </div>
-            <span class="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm font-semibold">Sistema Online</span>
+            
+             <!-- Status que muda via JS -->
+            <span id="connectionBadge" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-yellow-800 animate-pulse"></span> Conectando
+            </span>
+
         </header>
 
         <!-- Cards de Indicadores (Temperatura e Umidade Atuais) -->

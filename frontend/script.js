@@ -1,5 +1,18 @@
 let sensorChart;
 
+// Função para atualizar o status visual de conexão
+function atualizarStatusConexao(online){
+    const badge = document.getElementById('connectionBadge');
+
+    if (online){
+        badge.className = "px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold flex items-center gap-2"
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500"></span> Sistema Online`;
+    } else {
+        badge.className = "px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-semibold flex items-center gap-2";
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> Servidor Offline`;
+    }
+}
+
 async function inicializarDashboard() {
         const ctx = document.getElementById('sensorChart').getContext('2d');
         
@@ -24,6 +37,8 @@ async function buscarDadosDoBanco() {
         const resposta = await fetch('http://localhost:3000/api/sensores');
         const leituras = await resposta.json();
 
+        atualizarStatusConexao(true)
+
         if (leituras.length > 0){
             const labels = leituras.map(l => new Date(l.criadoEm).toLocaleTimeString());
             const temperaturas = leituras.map(l => l.temperatura);
@@ -40,6 +55,8 @@ async function buscarDadosDoBanco() {
         }
     } catch (erro){
         console.error("Erro ao comunicar com o backend:", erro)
+
+        atualizarStatusConexao(false);
     }
 }
 
