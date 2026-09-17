@@ -52,6 +52,22 @@ async function buscarDadosDoBanco() {
             sensorChart.data.datasets[0].data = temperaturas;
             sensorChart.data.datasets[1].data = umidades;
             sensorChart.update();
+
+            const tabelaBody = document.getElementById('historyTableBody');
+            const ultimos5 = [...leituras].reverse().slice(0, 5);
+
+            tabelaBody.innerHTML =ultimos5.map(d =>{
+                const horaFormatada = new Date(d.criadoEm || Date.now()).toLocaleTimeString();
+                return`
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="p-2 font-medium text-blue-600">${d.temperatura} °C</td>
+                    <td class="p-2 font-medium text-green-600">${d.umidade} %</td>
+                    <td class="p-2 text-gray-400 text-xs">${horaFormatada}</td>
+                </tr>
+                
+                `
+            }).join(''); // Adicionado o .join('') para juntar o array de strings em HTML válido
+
         }
     } catch (erro){
         console.error("Erro ao comunicar com o backend:", erro)

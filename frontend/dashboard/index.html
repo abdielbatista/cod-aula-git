@@ -63,13 +63,43 @@
             </div>
         </div>
 
-        <!-- Área do Gráfico -->
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold mb-4 text-gray-700">Histórico de Leituras em Tempo Real</h3>
-            <div class="relative h-80">
-                <canvas id="sensorChart"></canvas>
+        <!-- Área do Gráfico e Tabela com espaçamento (space-y-6) -->
+        <div class="flex flex-col space-y-6">
+
+            <!-- Área do Gráfico -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4 text-gray-700">Histórico de Leituras em Tempo Real</h3>
+                <div class="relative h-80">
+                    <canvas id="sensorChart"></canvas>
+                </div>
             </div>
+
+            <div class="bg-white p-6 rounded-lg shadow flex flex-col">
+                <h3 class="text-lg font-semibold mb-4 text-gray-700">Últimos Registros</h3>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left text-sm text-gray-600">
+                        <thead class="bg-gray-50 uppercase text-xs text-gray-700">
+                            <tr>
+                                <th class="p-2">Temp</th>
+                                <th class="p-2">Umi</th>
+                                <th class="p-2">Horário</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="3" class="p-4 text-center text-gray-400">Aguardando dados...</td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+
+            </div>
+
         </div>
+            
+
+        
 
     </main>
 
