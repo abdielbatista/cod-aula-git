@@ -1,291 +1,108 @@
-Passo 1: Criar a Estrutura de Pastas no Computador
-Na raiz do seu projeto (por exemplo, na pasta projeto-integrador), crie as seguintes pastas e arquivos manualmente ou pelo terminal:
+# 📊 Dashboard IoT - Sistema de Monitoramento em Tempo Real
 
-```
-/projeto-integrador
-│
-├── /backend
-│   ├── server.js
-│   └── package.json
-│
-├── /frontend
-│   ├── index.html
-│   ├── login.html
-│   ├── cadastro.css
-│   ├── style.css
-│   └── script.js
-│
-└── simulador.js
-```
-Passo 2: Criar o Banco de Dados (MySQL)
+Sistema full-stack desenvolvido para fins educacionais (**Projeto Integrador**), utilizando o padrão arquitetural **MVC (Model-View-Controller)** para monitoramento de sensores agrícolas em tempo real, com gráficos dinâmicos, indicadores de status de conexão, tratamento de erros e seletor dinâmico de plantações.
 
-Abra o seu gerenciador de MySQL (MySQL Workbench, phpMyAdmin, DBeaver, etc.) e execute o código SQL abaixo para criar o banco e a tabela:
+---
+
+## 🚀 Tecnologias Utilizadas
+
+* **Front-end:** HTML5, Tailwind CSS (via CDN), Chart.js, JavaScript (Vanilla).
+* **Back-end:** Node.js, Express, Cors.
+* **Banco de Dados:** MySQL / MariaDB (`mysql2`).
+* **Comunicação:** API REST assíncrona (`fetch`).
+
+---
+
+## 📋 Pré-requisitos
+
+Antes de iniciar, certifique-se de ter instalado em sua máquina:
+* [Node.js](https://nodejs.org/) (versão 16 ou superior recomendada)
+* [MySQL Server](https://dev.mysql.com/downloads/) (ou XAMPP / WampServer para gerenciar o banco localmente)
+* Um editor de código como o [VS Code](https://code.visualstudio.com/)
+
+---
+
+## ⚙️ Configuração do Banco de Dados (MySQL)
+
+Acesse o seu gerenciador MySQL (PhpMyAdmin ou terminal) e execute o script abaixo para criar o banco de dados, a tabela de plantações e a tabela de leituras com o relacionamento (`FOREIGN KEY`):
 
 ```sql
-CREATE DATABASE IF NOT EXISTS projeto_iot;
-USE projeto_iot;
+CREATE DATABASE IF NOT EXISTS sistema_iot;
+USE sistema_iot;
 
-CREATE TABLE IF NOT EXISTS LeituraSensor (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    temperatura FLOAT NOT NULL,
-    umidade FLOAT NOT NULL,
-    criadoEm DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+-- 1. Tabela de Plantações
+CREATE TABLE IF NOT EXISTS `plantas` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `nome` VARCHAR(100) NOT NULL,
+  `localizacao` VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Inserindo plantações de exemplo
+INSERT INTO `plantas` (`id`, `nome`, `localizacao`) VALUES
+(1, 'Plantação de Alface', 'Estufa A'),
+(2, 'Plantação de Tomate', 'Estufa B'),
+(3, 'Plantação de Milho', 'Campo Aberto');
+
+-- 2. Tabela de Leituras dos Sensores (relacionada com as plantas)
+CREATE TABLE IF NOT EXISTS `leiturasensor` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `temperatura` FLOAT NOT NULL,
+  `umidade` FLOAT NOT NULL,
+  `criadoEm` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `planta_id` INT(11) DEFAULT 1,
+  CONSTRAINT `fk_plantas` FOREIGN KEY (`planta_id`) REFERENCES `plantas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ```
 
+---
 
-Passo 3: Configurar e Rodar o Backend (Node.js)
+## 📦 Como Instalar e Executar o Projeto Localmente
 
-1 - Abra o terminal na pasta backend:
+### 1. Clonar ou baixar o repositório
+Abra o terminal na pasta do projeto.
 
-```cmd
-Bash
-cd backend
+### 2. Instalação das Dependências
+Navegue até a pasta do back-end (ou raiz onde está o seu `package.json`) e instale os pacotes necessários (`express`, `cors`, `mysql2`, etc.):
+```bash
+npm install
 ```
 
-
-2 - Instale as dependências necessárias (Express para o servidor, Cors para liberar o acesso, e o MySQL2 para conectar no banco):
-
-```cmd
-npm init -y
-npm install express cors mysql2
-```
-
-
-3- Crie o arquivo server.js dentro da pasta backend e cole o código abaixo (ajuste usuário, senha e nome do banco nas configurações do MySQL):
-
-```javascript
-const express = require('express');
-const mysql = require('mysql2');
-const cors = require('cors');
-
-const app = express();
-app.use(express.json());
-app.use(cors());
-
-// Conexão com o MySQL
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',         // Altere para o seu usuário do MySQL
-    password: 'sua_senha', // Altere para a sua senha do MySQL
-    database: 'projeto_iot'
-});
-
-db.connect((err) => {
-    if (err) {
-        console.error('Erro ao conectar no MySQL:', err);
-        return;
-    }
-    console.log('Conectado ao MySQL com sucesso!');
-});
-
-// Rota para receber dados (POST) - Usada pelo Arduino ou pelo Simulador
-app.post('/api/sensores', (req, res) => {
-    const { temperatura, umidade } = req.body;
-    const sql = 'INSERT INTO LeituraSensor (temperatura, umidade) VALUES (?, ?)';
-    
-    db.query(sql, [temperatura, umidade], (err, result) => {
-        if (err) {
-            console.error('Erro ao salvar no banco:', err);
-            return res.status(500).json({ erro: 'Erro ao salvar dados' });
-        }
-        res.json({ mensagem: 'Dado salvo com sucesso!', id: result.insertId });
-    });
-});
-
-// Rota para o Front-end buscar os últimos 10 registros (GET)
-app.get('/api/sensores', (req, res) => {
-    const sql = 'SELECT * FROM LeituraSensor ORDER BY id DESC LIMIT 10';
-    
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error('Erro ao buscar dados:', err);
-            return res.status(500).json({ erro: 'Erro ao buscar dados' });
-        }
-        // Inverte para ficar em ordem cronológica correta no gráfico
-        res.json(results.reverse());
-    });
-});
-
-app.listen(3000, () => {
-    console.log('Servidor rodando na porta 3000');
-});
-```
-
-1 - Para iniciar o servidor, digite no terminal (ainda dentro da pasta backend):
-
-```cmd
-Bash
+### 3. Executando o Servidor (Back-end)
+Inicie o servidor da API executando:
+```bash
 node server.js
 ```
+*O servidor rodará por padrão em: `http://localhost:3000`*
 
-Passo 4: Criar o Frontend (Separado em HTML, CSS e JS)
-Vá até a pasta frontend e crie os três arquivos separados:
-
-1. Arquivo index.html
-
-```html
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard IoT - Projeto Integrador</title>
-    <!-- Tailwind CSS (via CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js (via CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Link para o CSS separado -->
-    <link rel="stylesheet" href="style.css">
-</head>
-<body class="bg-gray-100 min-h-screen p-6">
-
-    <div class="max-w-6xl mx-auto">
-        <!-- Cabeçalho -->
-        <header class="mb-6 flex justify-between items-center bg-white p-4 rounded-lg shadow">
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard IoT (Dados do MySQL)</h1>
-            <span class="px-3 py-1 bg-green-200 text-green-800 rounded-full text-sm font-semibold">Conectado ao Banco</span>
-        </header>
-
-        <!-- Cards de Indicadores -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div class="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
-                <p class="text-gray-500 text-sm">Temperatura Atual</p>
-                <h2 id="currentTemp" class="text-3xl font-bold text-gray-800">-- °C</h2>
-            </div>
-            <div class="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
-                <p class="text-gray-500 text-sm">Umidade Atual</p>
-                <h2 id="currentHum" class="text-3xl font-bold text-gray-800">-- %</h2>
-            </div>
-        </div>
-
-        <!-- Área do Gráfico -->
-        <div class="bg-white p-6 rounded-lg shadow">
-            <h3 class="text-lg font-semibold mb-4 text-gray-700">Histórico de Leituras</h3>
-            <div class="relative h-80">
-                <canvas id="sensorChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Link para o JavaScript separado -->
-    <script src="script.js"></script>
-</body>
-</html>
-```
-
-2. Arquivo style.css
-(Aqui você pode colocar estilos customizados extras se precisar, o Tailwind já estiliza a maior parte)
-
-```
-/* Estilos personalizados opcionais */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-```
-
-3. Arquivo script.js
-
-```javascript
-const ctx = document.getElementById('sensorChart').getContext('2d');
-
-// Configuração inicial do Gráfico com Chart.js
-const sensorChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [
-            {
-                label: 'Temperatura (°C)',
-                data: [],
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                tension: 0.3,
-                fill: true
-            },
-            {
-                label: 'Umidade (%)',
-                data: [],
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                tension: 0.3,
-                fill: true
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false
-    }
-});
-
-// Função que busca os dados reais direto do Backend / MySQL
-async function buscarDadosDoMySQL() {
-    try {
-        const resposta = await fetch('http://localhost:3000/api/sensores');
-        const leituras = await resposta.json();
-
-        if (leituras.length > 0) {
-            const labels = leituras.map(l => new Date(l.criadoEm).toLocaleTimeString());
-            const temperaturas = leituras.map(l => l.temperatura);
-            const umidades = leituras.map(l => l.umidade);
-
-            // Atualiza os números dos cards com a leitura mais recente
-            const ultimo = leituras[leituras.length - 1];
-            document.getElementById('currentTemp').innerText = ultimo.temperatura + ' °C';
-            document.getElementById('currentHum').innerText = ultimo.umidade + ' %';
-
-            // Atualiza as informações do gráfico
-            sensorChart.data.labels = labels;
-            sensorChart.data.datasets[0].data = temperaturas;
-            sensorChart.data.datasets[1].data = umidades;
-            sensorChart.update();
-        }
-    } catch (erro) {
-        console.error("Erro ao buscar dados do servidor:", erro);
-    }
-}
-
-// Executa assim que abre e atualiza a cada 3 segundos
-buscarDadosDoMySQL();
-setInterval(buscarDadosDoMySQL, 3000);
-```
-
-Passo 5: Criar o Simulador (Para alimentar o banco automaticamente)
-Para que o gráfico e os cards tenham o que mostrar sem precisar do hardware físico conectado, crie o arquivo simulador.js na raiz do projeto:
-
-```javascript
-const urlBackend = 'http://localhost:3000/api/sensores';
-
-function gerarDadosAleatorios() {
-    const temperatura = Number((20 + Math.random() * 10).toFixed(1));
-    const umidade = Number((40 + Math.random() * 30).toFixed(1));
-    return { temperatura, umidade };
-}
-
-async function enviarDados() {
-    const dados = gerarDadosAleatorios();
-
-    try {
-        await fetch(urlBackend, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dados)
-        });
-        console.log(`[ENVIADO] Temp: ${dados.temperatura}°C | Umid: ${dados.umidade}%`);
-    } catch (erro) {
-        console.error("[ERRO] O backend está rodando?", erro.message);
-    }
-}
-
-console.log("🚀 Simulador iniciado. Enviando dados para o MySQL a cada 3 segundos...");
-enviarDados();
-setInterval(enviarDados, 3000);
-```
-
-Para rodá-lo, abra uma nova aba no terminal, navegue até a raiz do projeto e digite:
-
-```cmd
-Bash
+### 4. Executando o Simulador de Hardware (Gerador de dados)
+Em uma **nova aba/janela do terminal**, execute o script simulador para injetar dados falsos de temperatura, umidade e IDs de plantações variados no banco a cada 3 segundos:
+```bash
 node simulador.js
 ```
+
+### 5. Acessando o Front-end (Dashboard)
+Para abrir o painel visual:
+1. Vá até a pasta do front-end (`dashboard/index.html`).
+2. Utilize a extensão **Live Server** do VS Code para abri-lo (recomendado) **OU** dê dois cliques no arquivo `index.html` para abri-lo direto no navegador.
+
+---
+
+## 📂 Estrutura do Projeto
+
+```text
+/cod-git
+   ├── /backend
+   │     ├── /config          <-- Conexão com o banco de dados (MySQL)
+   │     ├── /controllers     <-- Regras de negócio (SensorController)
+   │     ├── /models          <-- Consultas SQL (SensorModel)
+   │     └── /routes          <-- Endpoints da API (sensorRoutes)
+   ├── /dashboard
+   │     └── index.html       <-- Interface visual (Tailwind CSS + Chart.js)
+   ├── server.js              <-- Ponto de entrada do servidor Node.js
+   ├── simulador.js           <-- Simula o envio automático de dados IoT
+   ├── script.js              <-- Lógica do front-end e consumo da API
+   └── package.json           <-- Dependências e scripts
+```
+
+## 👨‍🏫 Autor / Professor Abdiel B.S
+Projeto desenvolvido para acompanhamento e aulas práticas das turmas de Desenvolvimento Web e IoT (Projeto Integrador).

@@ -13,10 +13,16 @@ function atualizarStatusConexao(online){
     }
 }
 
+// NOVO: Pega o ID da planta selecionada no <select> do HTML
+function obterPlantaSelecionada() {
+    const seletor = document.getElementById('seletorPlanta');
+    return seletor ? seletor.value : 1; // Retorna o ID selecionado ou 1 como padrão
+}
+
 async function inicializarDashboard() {
-        const ctx = document.getElementById('sensorChart').getContext('2d');
+    const ctx = document.getElementById('sensorChart').getContext('2d');
         
-        sensorChart = new Chart(ctx, {
+    sensorChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: [],
@@ -30,11 +36,23 @@ async function inicializarDashboard() {
 
     buscarDadosDoBanco();
     setInterval(buscarDadosDoBanco, 3000);
+
+    // NOVO: Ouve o evento de troca no <select>: mudou de planta, busca os dados na hora!
+    const seletor = document.getElementById('seletorPlanta');
+    if (seletor) {
+        seletor.addEventListener('change', () => {
+            buscarDadosDoBanco();
+        });
+    }
 }
 
 async function buscarDadosDoBanco() {
+    // Pega o ID da planta escolhida no momento
+    const plantaId = obterPlantaSelecionada();
+
     try{
-        const resposta = await fetch('http://localhost:3000/api/sensores');
+        // ATUALIZADO: Passa o ID da planta na URL para o back-end filtrar
+        const resposta = await fetch(`http://localhost:3000/api/sensores/${plantaId}`);
         const leituras = await resposta.json();
 
         atualizarStatusConexao(true)
@@ -56,22 +74,31 @@ async function buscarDadosDoBanco() {
             const tabelaBody = document.getElementById('historyTableBody');
             const ultimos5 = [...leituras].reverse().slice(0, 5);
 
-            tabelaBody.innerHTML =ultimos5.map(d =>{
+            tabelaBody.innerHTML = ultimos5.map(d =>{
                 const horaFormatada = new Date(d.criadoEm || Date.now()).toLocaleTimeString();
-                return`
+                return `
                 <tr class="border-b hover:bg-gray-50">
                     <td class="p-2 font-medium text-blue-600">${d.temperatura} °C</td>
                     <td class="p-2 font-medium text-green-600">${d.umidade} %</td>
                     <td class="p-2 text-gray-400 text-xs">${horaFormatada}</td>
                 </tr>
-                
                 `
-            }).join(''); // Adicionado o .join('') para juntar o array de strings em HTML válido
-
+            }).join('');
+        } else {
+            // Caso a planta não tenha registros, limpa os cards e o gráfico
+            document.getElementById('currentTemp').innerText = '-- °C';
+            document.getElementById('currentHum').innerText = '-- %';
+            sensorChart.data.labels = [];
+            sensorChart.data.datasets[0].data = [];
+            sensorChart.data.datasets[1].data = [];
+            sensorChart.update();
+            
+            document.getElementById('historyTableBody').innerHTML = `
+                <tr><td colspan="3" class="p-4 text-center text-gray-400">Nenhum registro para esta plantação.</td></tr>
+            `;
         }
     } catch (erro){
         console.error("Erro ao comunicar com o backend:", erro)
-
         atualizarStatusConexao(false);
     }
 }

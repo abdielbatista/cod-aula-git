@@ -38,16 +38,29 @@
     <main class="flex-1 p-8">
         
         <!-- Cabeçalho -->
-        <header class="mb-6 bg-white p-4 rounded-lg shadow flex items-center justify-between">
+        <header class="mb-6 bg-white p-4 rounded-lg shadow flex flex-col md:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-chart-line text-gray-800 text-xl"></i>
                 <h1 class="text-2xl font-bold text-gray-800">Dashboard IoT (Dados do MySQL)</h1>
             </div>
             
-             <!-- Status que muda via JS -->
-            <span id="connectionBadge" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-yellow-800 animate-pulse"></span> Conectando
-            </span>
+            <!-- Controles do Cabeçalho: Seletor de Plantação + Status de Conexão -->
+            <div class="flex items-center gap-4">
+                <!-- SELETOR DE PLANTAÇÃO (Filtro Front-end) -->
+                <div class="flex items-center gap-2">
+                    <label for="seletorPlanta" class="text-sm font-semibold text-gray-600">Plantação:</label>
+                    <select id="seletorPlanta" class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="1">Plantação de Alface (ID 1)</option>
+                        <option value="2">Plantação de Tomate (ID 2)</option>
+                        <option value="3">Plantação de Milho (ID 3)</option>
+                    </select>
+                </div>
+
+                <!-- Status que muda via JS -->
+                <span id="connectionBadge" class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-yellow-800 animate-pulse"></span> Conectando
+                </span>
+            </div>
 
         </header>
 
@@ -97,13 +110,10 @@
             </div>
 
         </div>
-            
-
         
-
     </main>
 
-    <!-- Importa o arquivo script.js para controlar o gráfico -->
+    <!-- Importa o arquivo script.js para controlar o gráfico e o evento do seletor -->
     <script src="../script.js"></script>
 </body>
 </html>

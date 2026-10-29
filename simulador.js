@@ -9,7 +9,11 @@ function gerarDadosFalsos() {
     // Gera uma umidade entre 40% e 70% com 1 casa decimal
     const umidade = Number((40 + Math.random() * 30).toFixed(1));
 
-    return { temperatura, umidade };
+    // Sorteia aleatoriamente uma plantação (IDs 1, 2 ou 3)
+    const plantasDisponiveis = [1, 2, 3];
+    const plantaId = plantasDisponiveis[Math.floor(Math.random() * plantasDisponiveis.length)];
+
+    return { temperatura, umidade, plantaId };
 }
 
 async function enviarParaServidor() {
@@ -25,12 +29,12 @@ async function enviarParaServidor() {
         });
 
         const resultado = await resposta.json();
-        console.log('📡 [Simulador] Dado enviado com sucesso:', dados, '| Resposta do Servidor:', resultado);
+        console.log(`📡 [Simulador] Dado enviado (Planta ${dados.plantaId}):`, dados, '| Resposta:', resultado);
     } catch (erro) {
         console.error('❌ [Simulador] Erro ao enviar dados. O servidor Node.js está ligado?', erro.message);
     }
 }
 
 // Dispara o envio a cada 3 segundos
-console.log('Iniciando simulador de IoT...');
+console.log('Iniciando simulador de IoT com suporte a múltiplas plantações...');
 setInterval(enviarParaServidor, 3000);
